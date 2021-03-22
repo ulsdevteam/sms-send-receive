@@ -12,20 +12,14 @@ try {
     // Validate the webhook against the public key and retrieve the $webhook_event object
     $webhook_event = \Telnyx\Webhook::constructFromRequest();
 	#constructFromRequest can return two possible errors:
-    } catch(\UnexpectedValueException $e) { // Invalid payload
+	} catch(\UnexpectedValueException | \Telnyx\Exception\SignatureVerificationException $e) {
         // Output error message
-        error_log('Invalid payload'); 
+        error_log($e->getMessage()); 
         // Send status code to signal that the webhook was NOT successfully received
         http_response_code(400);
         exit();
-    } catch(\Telnyx\Exception\SignatureVerificationException $e) { // Invalid signature
-        // Output error message
-        error_log('Invalid signature'); 
-        // Send status code to signal that the webhook was NOT successfully received
-        http_response_code(400);
-        exit();
-	}   
-	
+    }
+
 // Now you can work with the $webhook_event object
 // Send status code to signal that the webhook was successfully received
 http_response_code(200);
