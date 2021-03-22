@@ -1,6 +1,7 @@
 <?php
 require_once '../vendor/autoload.php';
 include '../config.php';
+include 'telnyxMessageCreate.php';
 //require_once '../bootstrap.php';
 \Telnyx\Telnyx::setApiKey(TELNYX_API_KEY);
 
@@ -10,6 +11,7 @@ $webhook_event = null;
 try {
     // Validate the webhook against the public key and retrieve the $webhook_event object
     $webhook_event = \Telnyx\Webhook::constructFromRequest();
+	#constructFromRequest can return two possible errors:
     } catch(\UnexpectedValueException $e) { // Invalid payload
         // Output error message
         error_log('Invalid payload'); 
@@ -55,8 +57,11 @@ else if (in_array($message,$startwords)){
 }
 
 else{
-error_log('telnyx reply');
-$send=\Telnyx\Message::Create(['from' => $your_telnyx_number, 'to' => $webhook_event["data"]["payload"]["from"]["phone_number"], 'text' => $reply]);
+	//source#, destination#, message
+	try {
+		telnyxMessageCreate($your_telnyx_number,$webhook_event["data"]["payload"]["from"]["phone_number"],$reply);        
+    } catch (Exception $e) {
+    	error_log('Telnyx reply failed');
+	}   
 }
-
 ?>
